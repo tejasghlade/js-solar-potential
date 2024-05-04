@@ -68,12 +68,10 @@
     const defaultPanelCapacity = buildingInsights.solarPotential.panelCapacityWatts;
     panelCapacityRatio = panelCapacityWatts / defaultPanelCapacity;
   }
-
   export async function showSolarPotential(location: google.maps.LatLng) {
     if (requestSent) {
       return;
     }
-
     console.log('showSolarPotential');
     buildingInsights = undefined;
     requestError = undefined;

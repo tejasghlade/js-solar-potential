@@ -1,24 +1,8 @@
-<!--
- Copyright 2023 Google LLC
 
- Licensed under the Apache License, Version 2.0 (the "License");
- you may not use this file except in compliance with the License.
- You may obtain a copy of the License at
-
-      https://www.apache.org/licenses/LICENSE-2.0
-
- Unless required by applicable law or agreed to in writing, software
- distributed under the License is distributed on an "AS IS" BASIS,
- WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- See the License for the specific language governing permissions and
- limitations under the License.
- -->
 
 <script lang="ts">
   /* global google */
-
   import { onMount } from 'svelte';
-
   import type { MdDialog } from '@material/web/dialog/dialog';
   import Calendar from '../components/Calendar.svelte';
   import Dropdown from '../components/Dropdown.svelte';
@@ -197,99 +181,98 @@
   });
 </script>
 
-{#if requestError}
-  <div class="error-container on-error-container-text">
-    <Expandable section={title} icon="error" {title} subtitle={requestError.error.status}>
-      <div class="grid place-items-center py-2 space-y-4">
-        <div class="grid place-items-center">
-          <p class="body-medium">
-            Error on <code>dataLayers</code>
-            {layerId} request
-          </p>
-          <p class="title-large">ERROR {requestError.error.code}</p>
-          <p class="body-medium"><code>{requestError.error.status}</code></p>
-          <p class="label-medium">{requestError.error.message}</p>
+  {#if requestError}
+    <div class="error-container on-error-container-text">
+      <Expandable section={title} icon="error" {title} subtitle={requestError.error.status}>
+        <div class="grid place-items-center py-2 space-y-4">
+          <div class="grid place-items-center">
+            <p class="body-medium">
+              Error on <code>dataLayers</code>
+              {layerId} request
+            </p>
+            <p class="title-large">ERROR {requestError.error.code}</p>
+            <p class="body-medium"><code>{requestError.error.status}</code></p>
+            <p class="label-medium">{requestError.error.message}</p>
+          </div>
+          <md-filled-button role={undefined} on:click={() => showDataLayer(true)}>
+            Retry
+            <md-icon slot="icon">refresh</md-icon>
+          </md-filled-button>
         </div>
-        <md-filled-button role={undefined} on:click={() => showDataLayer(true)}>
-          Retry
-          <md-icon slot="icon">refresh</md-icon>
-        </md-filled-button>
-      </div>
-    </Expandable>
-  </div>
-{:else}
-  <Expandable bind:section={expandedSection} {icon} {title} subtitle={dataLayerOptions[layerId]}>
-    <div class="flex flex-col space-y-2 px-2">
-      <span class="outline-text label-medium">
-        <b>{title}</b> provides raw and processed imagery and granular details on an area surrounding
-        a location.
-      </span>
-
-      <Dropdown
-        bind:value={layerId}
-        options={dataLayerOptions}
-        onChange={async () => {
-          layer = undefined;
-          showDataLayer();
-        }}
-      />
-
-      {#if layerId == 'none'}
-        <div />
-      {:else if !layer}
-        <md-linear-progress four-color indeterminate />
-      {:else}
-        {#if layer.id == 'hourlyShade'}
-          <Calendar bind:month bind:day onChange={async () => showDataLayer()} />
-        {/if}
-
+      </Expandable>
+    </div>
+  {:else}
+    <Expandable bind:section={expandedSection} {icon} {title} subtitle={dataLayerOptions[layerId]}>
+      <div class="flex flex-col space-y-2 px-2">
         <span class="outline-text label-medium">
-          {#if imageryQuality == 'HIGH'}
-            <p><b>Low altitude aerial imagery</b> available.</p>
-            <p>Imagery and DSM data were processed at <b>10 cm/pixel</b>.</p>
-          {:else if imageryQuality == 'MEDIUM'}
-            <p><b>AI augmented aerial imagery</b> available.</p>
-            <p>Imagery and DSM data were processed at <b>25 cm/pixel</b>.</p>
-          {:else if imageryQuality == 'LOW'}
-            <p><b>AI augmented aerial or satellite imagery</b> available.</p>
-            <p>Imagery and DSM data were processed at <b>50 cm/pixel</b>.</p>
-          {/if}
+          <b>{title}</b> provides raw and processed imagery and granular details on an area surrounding
+          a location.
         </span>
 
-        <InputBool bind:value={showPanels} label="Solar panels" />
-        <InputBool bind:value={showRoofOnly} label="Roof only" onChange={() => showDataLayer()} />
+        <Dropdown
+          bind:value={layerId}
+          options={dataLayerOptions}
+          onChange={async () => {
+            layer = undefined;
+            showDataLayer();
+          }}
+        />
 
-        {#if ['monthlyFlux', 'hourlyShade'].includes(layerId)}
-          <InputBool bind:value={playAnimation} label="Play animation" />
+        {#if layerId == 'none'}
+          <div />
+        {:else if !layer}
+          <md-linear-progress four-color indeterminate />
+        {:else}
+          {#if layer.id == 'hourlyShade'}
+            <Calendar bind:month bind:day onChange={async () => showDataLayer()} />
+          {/if}
+
+          <span class="outline-text label-medium">
+            {#if imageryQuality == 'HIGH'}
+              <p><b>Low altitude aerial imagery</b> available.</p>
+              <p>Imagery and DSM data were processed at <b>10 cm/pixel</b>.</p>
+            {:else if imageryQuality == 'MEDIUM'}
+              <p><b>AI augmented aerial imagery</b> available.</p>
+              <p>Imagery and DSM data were processed at <b>25 cm/pixel</b>.</p>
+            {:else if imageryQuality == 'LOW'}
+              <p><b>AI augmented aerial or satellite imagery</b> available.</p>
+              <p>Imagery and DSM data were processed at <b>50 cm/pixel</b>.</p>
+            {/if}
+          </span>
+
+          <InputBool bind:value={showPanels} label="Solar panels" />
+          <InputBool bind:value={showRoofOnly} label="Roof only" onChange={() => showDataLayer()} />
+
+          {#if ['monthlyFlux', 'hourlyShade'].includes(layerId)}
+            <InputBool bind:value={playAnimation} label="Play animation" />
+          {/if}
         {/if}
-      {/if}
-      <div class="flex flex-row">
-        <div class="grow" />
-        <md-filled-tonal-button role={undefined} on:click={() => apiResponseDialog.show()}>
-          API response
-        </md-filled-tonal-button>
-      </div>
+        <div class="flex flex-row">
+          <div class="grow" />
+          <md-filled-tonal-button role={undefined} on:click={() => apiResponseDialog.show()}>
+            API response
+          </md-filled-tonal-button>
+        </div>
 
-      <md-dialog bind:this={apiResponseDialog}>
-        <div slot="headline">
-          <div class="flex items-center primary-text">
-            <md-icon>{icon}</md-icon>
-            <b>&nbsp;{title}</b>
+        <md-dialog bind:this={apiResponseDialog}>
+          <div slot="headline">
+            <div class="flex items-center primary-text">
+              <md-icon>{icon}</md-icon>
+              <b>&nbsp;{title}</b>
+            </div>
           </div>
-        </div>
-        <div slot="content">
-          <Show value={dataLayersResponse} label="dataLayersResponse" />
-        </div>
-        <div slot="actions">
-          <md-text-button role={undefined} on:click={() => apiResponseDialog.close()}>
-            Close
-          </md-text-button>
-        </div>
-      </md-dialog>
-    </div>
-  </Expandable>
-{/if}
-
+          <div slot="content">
+            <Show value={dataLayersResponse} label="dataLayersResponse" />
+          </div>
+          <div slot="actions">
+            <md-text-button role={undefined} on:click={() => apiResponseDialog.close()}>
+              Close
+            </md-text-button>
+          </div>
+        </md-dialog>
+      </div>
+    </Expandable>
+  {/if}
 <div class="absolute top-0 left-0 w-72">
   {#if expandedSection == title && layer}
     <div class="m-2">
@@ -345,7 +328,6 @@
     </div>
   {/if}
 </div>
-
 <div class="absolute bottom-6 left-0 w-full">
   <div class="md:mr-96 mr-80 grid place-items-center">
     {#if layer}
